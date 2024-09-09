@@ -285,3 +285,58 @@ data.forEach(node => {
     }
 });
 
+
+
+
+const data = [
+    { id: 1, name: 'Parent 1', certification: 'gold', imgSrc: 'images/parent1.png' },
+    { id: 2, name: 'Parent 2', certification: 'silver', imgSrc: 'images/parent2.png' },
+    { id: 3, name: 'Child 1', certification: 'blue', imgSrc: 'images/child1.png', parents: [1, 2] },
+    { id: 4, name: 'Child 2', certification: 'blue', imgSrc: 'images/child2.png', parents: [1] }
+];
+
+const parentContainer = document.getElementById('parent-container');
+const childContainer = document.getElementById('child-container');
+
+function createNode(node, container) {
+    const nodeDiv = document.createElement('div');
+    nodeDiv.classList.add('node');
+    nodeDiv.setAttribute('id', `node-${node.id}`);
+
+    const circleDiv = document.createElement('div');
+    circleDiv.classList.add('node-circle', `node-${node.certification}`);
+
+    const img = document.createElement('img');
+    img.src = node.imgSrc;
+    img.alt = node.name;
+    circleDiv.appendChild(img);
+
+    nodeDiv.appendChild(circleDiv);
+    container.appendChild(nodeDiv);
+
+    return nodeDiv;
+}
+
+// Create parent nodes
+data.forEach(node => {
+    if (!node.parents) {
+        const parentNode = createNode(node, parentContainer);
+        parentNode.addEventListener('click', () => {
+            childContainer.innerHTML = ''; // Clear previous children
+            childContainer.style.display = 'flex'; // Show the child container
+
+            // Find and display children
+            let hasChildren = false;
+            data.forEach(childNode => {
+                if (childNode.parents && childNode.parents.includes(node.id)) {
+                    createNode(childNode, childContainer);
+                    hasChildren = true;
+                }
+            });
+
+            if (!hasChildren) {
+                childContainer.style.display = 'none'; // Hide the container if no children are found
+            }
+        });
+    }
+});

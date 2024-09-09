@@ -340,3 +340,89 @@ data.forEach(node => {
         });
     }
 });
+
+
+
+
+
+const data = [
+    { id: 1, name: 'Parent 1', certification: 'gold', imgSrc: 'images/parent1.png' },
+    { id: 2, name: 'Parent 2', certification: 'silver', imgSrc: 'images/parent2.png' },
+    { id: 3, name: 'Child 1', certification: 'blue', imgSrc: 'images/child1.png', parents: [1, 2] },
+    { id: 4, name: 'Child 2', certification: 'blue', imgSrc: 'images/child2.png', parents: [1] }
+];
+
+const parentContainer = document.getElementById('parent-container');
+const childContainer = document.getElementById('child-container');
+
+function createNode(node, container) {
+    const nodeDiv = document.createElement('div');
+    nodeDiv.classList.add('node');
+    nodeDiv.setAttribute('id', `node-${node.id}`);
+
+    const circleDiv = document.createElement('div');
+    circleDiv.classList.add('node-circle', `node-${node.certification}`);
+
+    const img = document.createElement('img');
+    img.src = node.imgSrc;
+    img.alt = node.name;
+    circleDiv.appendChild(img);
+
+    nodeDiv.appendChild(circleDiv);
+    container.appendChild(nodeDiv);
+
+    return nodeDiv;
+}
+
+function drawLine(parentNode, childNode) {
+    const parentRect = parentNode.getBoundingClientRect();
+    const childRect = childNode.getBoundingClientRect();
+
+    const x1 = parentRect.left + parentRect.width / 2;
+    const y1 = parentRect.top + parentRect.height / 2;
+    const x2 = childRect.left + childRect.width / 2;
+    const y2 = childRect.top + childRect.height / 2;
+
+    const line = document.createElement('div');
+    line.classList.add('line');
+
+    const length = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    line.style.height = `${length}px`;
+
+    const angle = Math.atan2(y2 - y1, x2 - x1) * (180 / Math.PI);
+    line.style.transform = `rotate(${angle}deg)`;
+    line.style.transformOrigin = '0 0';
+    line.style.position = 'absolute';
+    line.style.top = `${y1}px`;
+    line.style.left = `${x1}px`;
+    line.style.backgroundColor = 'black'; // Line color
+    line.style.width = '2px'; // Line thickness
+
+    document.body.appendChild(line);
+}
+
+// Create parent nodes
+data.forEach(node => {
+    if (!node.parents) {
+        const parentNode = createNode(node, parentContainer);
+        parentNode.addEventListener('click', () => {
+            childContainer.innerHTML = ''; // Clear previous children
+            childContainer.style.display = 'flex'; // Show the child container
+
+            // Find and display children
+            let hasChildren = false;
+            data.forEach(childNode => {
+                if (childNode.parents && childNode.parents.includes(node.id)) {
+                    const childElement = createNode(childNode, childContainer);
+                    drawLine(parentNode.querySelector('.node-circle'), childElement.querySelector('.node-circle'));
+                    hasChildren = true;
+                }
+            });
+
+            if (!hasChildren) {
+                childContainer.style.display = 'none'; // Hide the container if no children are found
+            }
+        });
+    }
+});
+

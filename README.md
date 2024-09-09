@@ -169,3 +169,119 @@ In this example:
 - children is an array of child nodes, with the same structure as the parent node.
 
 Replace the (link unavailable) with your actual API URL or image URLs. This data will be fetched and rendered as a tree structure using the provided HTML and JavaScript code.
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tree Structure</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="tree-container"></div>
+    <script src="script.js"></script>
+</body>
+</html>
+body {
+    font-family: Arial, sans-serif;
+}
+
+#tree-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-top: 50px;
+}
+
+.node {
+    position: relative;
+    text-align: center;
+    margin: 10px;
+}
+
+.node img {
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+}
+
+.node-circle {
+    border-radius: 50%;
+    padding: 20px;
+    display: inline-block;
+    margin: 10px;
+}
+
+.node-blue {
+    background-color: blue;
+}
+
+.node-silver {
+    background-color: silver;
+}
+
+.node-gold {
+    background-color: yellow;
+}
+
+.line {
+    position: absolute;
+    width: 2px;
+    background-color: black;
+    transform-origin: top;
+}
+const data = [
+    { id: 1, name: 'Parent 1', certification: 'gold', imgSrc: 'parent1.png' },
+    { id: 2, name: 'Parent 2', certification: 'silver', imgSrc: 'parent2.png' },
+    { id: 3, name: 'Child 1', certification: 'blue', imgSrc: 'child1.png', parents: [1, 2] },
+    { id: 4, name: 'Child 2', certification: 'blue', imgSrc: 'child2.png', parents: [1] }
+];
+
+const treeContainer = document.getElementById('tree-container');
+
+function createNode(node) {
+    const nodeDiv = document.createElement('div');
+    nodeDiv.classList.add('node');
+
+    const circleDiv = document.createElement('div');
+    circleDiv.classList.add('node-circle', `node-${node.certification}`);
+
+    const img = document.createElement('img');
+    img.src = node.imgSrc;
+    circleDiv.appendChild(img);
+
+    nodeDiv.appendChild(circleDiv);
+    return nodeDiv;
+}
+
+function drawLine(parentNode, childNode) {
+    const parentRect = parentNode.getBoundingClientRect();
+    const childRect = childNode.getBoundingClientRect();
+
+    const line = document.createElement('div');
+    line.classList.add('line');
+
+    const length = Math.sqrt(Math.pow(childRect.left - parentRect.left, 2) + Math.pow(childRect.top - parentRect.top, 2));
+    line.style.height = `${length}px`;
+
+    const angle = Math.atan2(childRect.top - parentRect.top, childRect.left - parentRect.left) * (180 / Math.PI);
+    line.style.transform = `rotate(${angle}deg)`;
+
+    parentNode.appendChild(line);
+}
+
+data.forEach(node => {
+    const nodeDiv = createNode(node);
+    treeContainer.appendChild(nodeDiv);
+
+    if (node.parents) {
+        node.parents.forEach(parentId => {
+            const parentNode = document.querySelector(`#tree-container .node:nth-child(${parentId}) .node-circle`);
+            drawLine(parentNode, nodeDiv.querySelector('.node-circle'));
+        });
+    }
+});
+

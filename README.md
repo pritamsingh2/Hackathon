@@ -532,3 +532,110 @@ data.forEach(node => {
         });
     }
 });
+
+
+const data = [
+    { id: 1, name: 'Parent 1', certification: 'gold', imgSrc: 'images/parent1.png' },
+    { id: 2, name: 'Parent 2', certification: 'silver', imgSrc: 'images/parent2.png' },
+    { id: 3, name: 'Child 1', certification: 'blue', imgSrc: 'images/child1.png', parents: [1, 2] },
+    { id: 4, name: 'Child 2', certification: 'blue', imgSrc: 'images/child2.png', parents: [1] },
+    { id: 5, name: 'Grandchild 1', certification: 'gold', imgSrc: 'images/grandchild1.png', parents: [3] },
+    { id: 6, name: 'Grandchild 2', certification: 'silver', imgSrc: 'images/grandchild2.png', parents: [4] }
+];
+
+const mainContainer = document.getElementById('main-container');
+const childContainer = document.getElementById('child-container');
+
+function createNode(node, container) {
+    const nodeDiv = document.createElement('div');
+    nodeDiv.classList.add('node');
+    nodeDiv.setAttribute('id', `node-${node.id}`);
+
+    const circleDiv = document.createElement('div');
+    circleDiv.classList.add('node-circle', `node-${node.certification}`);
+
+    const img = document.createElement('img');
+    img.src = node.imgSrc;
+    img.alt = node.name;
+    circleDiv.appendChild(img);
+
+    nodeDiv.appendChild(circleDiv);
+    container.appendChild(nodeDiv);
+
+    return nodeDiv;
+}
+
+function drawLine(parentNode, childNode) {
+    const parentRect = parentNode.getBoundingClientRect();
+    const childRect = childNode.getBoundingClientRect();
+
+    const parentCenterX = parentRect.left + parentRect.width / 2;
+    const parentCenterY = parentRect.top + parentRect.height / 2;
+    const childCenterX = childRect.left + childRect.width / 2;
+    const childCenterY = childRect.top + childRect.height / 2;
+
+    const line = document.createElement('div');
+    line.classList.add('line');
+
+    const length = Math.sqrt(Math.pow(childCenterX - parentCenterX, 2) + Math.pow(childCenterY - parentCenterY, 2));
+    line.style.height = `${length}px`;
+    line.style.width = '2px'; // Line thickness
+
+    const angle = Math.atan2(childCenterY - parentCenterY, childCenterX - parentCenterX) * (180 / Math.PI);
+    line.style.transform = `rotate(${angle}deg)`;
+    line.style.transformOrigin = '0 0';
+    line.style.top = `${parentCenterY}px`;
+    line.style.left = `${parentCenterX}px`;
+
+    document.body.appendChild(line);
+}
+
+function clearLines() {
+    const lines = document.querySelectorAll('.line');
+    lines.forEach(line => line.remove());
+}
+
+function removeHighlight() {
+    const highlightedNodes = document.querySelectorAll('.node.highlight');
+    highlightedNodes.forEach(node => node.classList.remove('highlight'));
+}
+
+function displayChildren(parentNode, parentId) {
+    // Hide all other nodes and clear child container
+    mainContainer.innerHTML = '';
+    childContainer.innerHTML = '';
+    clearLines();
+
+    removeHighlight(); // Remove highlight from previously selected node
+    parentNode.classList.add('highlight'); // Highlight the clicked parent
+
+    let hasChildren = false;
+    data.forEach(childNode => {
+        if (childNode.parents && childNode.parents.includes(parentId)) {
+            const childElement = createNode(childNode, childContainer);
+            drawLine(parentNode.querySelector('.node-circle'), childElement.querySelector('.node-circle'));
+            hasChildren = true;
+
+            childElement.addEventListener('click', () => {
+                displayChildren(childElement, childNode.id); // Recursively display further children
+            });
+        }
+    });
+
+    if (hasChildren) {
+        childContainer.style.display = 'flex'; // Show the child container if there are children
+    } else {
+        childContainer.style.display = 'none'; // Hide the container if no children are found
+    }
+}
+
+// Initialize the main container with top-level nodes (parents)
+data.forEach(node => {
+    if (!node.parents) { // Top-level parents
+        const parentNode = createNode(node, mainContainer);
+        parentNode.addEventListener('click', () => {
+            displayChildren(parentNode, node.id); // Display children of the clicked parent
+        });
+    }
+});
+
